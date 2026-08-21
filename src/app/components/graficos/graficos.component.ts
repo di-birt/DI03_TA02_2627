@@ -21,7 +21,7 @@ export class GraficosComponent implements OnDestroy {
 
   // viewChild apunta al <canvas #canvasGoles> del template.
   // Es undefined hasta que Angular construye la vista.
-  private canvasGoles = viewChild<ElementRef<HTMLCanvasElement>>('canvasGoles');
+  private canvasLinea = viewChild<ElementRef<HTMLCanvasElement>>('canvasLinea');
 
   // Guarda la instancia de Chart para destruirla antes de redibujar.
   // Sin esto Chart.js lanzaría el error "Canvas is already in use".
@@ -32,10 +32,10 @@ export class GraficosComponent implements OnDestroy {
   // el guard los detiene. Cuando Angular los crea, el effect vuelve a dispararse.
   constructor() {
     effect(() => {
-      const data   = this.selecciones();
-      const canvas = this.canvasGoles();
-      if (!canvas) return;
-      this.renderGoles(data, canvas.nativeElement);
+      const data      = this.selecciones();
+      const canvasLin = this.canvasLinea();
+      if (!canvasLin) return;
+      this.renderMedia(data, canvasLin.nativeElement);
     });
   }
 
@@ -45,61 +45,50 @@ export class GraficosComponent implements OnDestroy {
     this.charts.delete(key);
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // Gráfico de barras verticales: goles por selección en la UEFA Euro 2024
-  //
-  // type: 'bar' → barras verticales (indexAxis por defecto es 'x').
-  // Los datos se ordenan de mayor a menor antes de dibujar.
-  // COLORS[i % COLORS.length] cicla la paleta cuando hay más barras que colores.
-  // El sufijo 'bb' en hex equivale a ~73 % de opacidad (relleno semitransparente).
-  // ──────────────────────────────────────────────────────────────────────────
-  private renderGoles(data: Seleccion[], canvas: HTMLCanvasElement) {
-    this.destroyChart('goles');
+  // Gráfico de líneas: media de goles por partido por selección
+  private renderMedia(data: Seleccion[], canvas: HTMLCanvasElement) {
+    this.destroyChart('media');
 
-    const sorted = [...data].sort((a, b) => b.goles - a.goles);
-    const COLORS = ['#3880ff', '#2dd36f', '#eb445a', '#ffc409', '#5260ff',
-                    '#0cd1e8', '#f7a34b', '#a855f7', '#10dc60', '#92949c'];
+    const sorted = [...data].sort((a, b) => (b.goles / b.partidos) - (a.goles / a.partidos));
 
-    this.charts.set('goles', new Chart(canvas, {
-      type: 'bar',
+    this.charts.set('media', new Chart(canvas, {
+      type: 'line',
       data: {
         labels: sorted.map(s => s.seleccion),
         datasets: [{
-          label: 'Goles marcados',
-          data: sorted.map(s => s.goles),
-          backgroundColor: sorted.map((_, i) => COLORS[i % COLORS.length] + 'bb'),
-          borderColor:     sorted.map((_, i) => COLORS[i % COLORS.length]),
+          label: 'Media de goles por partido',
+          data: sorted.map(s => parseFloat((s.goles / s.partidos).toFixed(2))),
+          borderColor: '#eb445a',
+          backgroundColor: 'rgba(235, 68, 90, 0.12)',
           borderWidth: 2,
-          borderRadius: 8,
-          // borderSkipped: false → redondea todas las esquinas, no solo la superior
-          borderSkipped: false,
+          pointBackgroundColor: '#eb445a',
+          pointRadius: 5,
+          tension: 0.3,
+          fill: true
         }]
       },
       options: {
-        // responsive: true → la gráfica se redimensiona con el contenedor
         responsive: true,
-        // maintainAspectRatio: false → la altura se controla desde CSS
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
           title: {
             display: true,
-            text: 'Goles por selección — UEFA Euro 2024',
+            text: 'Media de goles por partido — UEFA Euro 2024',
             font: { size: 15, weight: 'bold' },
             color: '#333',
             padding: { bottom: 14 }
           },
           tooltip: {
             callbacks: {
-              label: ctx => ` ${ctx.parsed.y} goles en ${sorted[ctx.dataIndex].partidos} partidos`
+              label: ctx => ` ${ctx.parsed.y} goles/partido (${sorted[ctx.dataIndex].partidos} partidos)`
             }
           }
         },
         scales: {
           y: {
-            // beginAtZero: true → el eje Y empieza en 0, evita gráficas engañosas
             beginAtZero: true,
-            ticks: { stepSize: 1, color: '#555' },
+            ticks: { color: '#555' },
             grid: { color: 'rgba(0,0,0,0.06)' }
           },
           x: {
