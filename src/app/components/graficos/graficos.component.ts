@@ -49,20 +49,28 @@ export class GraficosComponent implements OnDestroy {
   private renderMedia(data: Seleccion[], canvas: HTMLCanvasElement) {
     this.destroyChart('media');
 
-    const sorted = [...data].sort((a, b) => (b.goles / b.partidos) - (a.goles / a.partidos));
+    //Si quisieramos ordenarlo descendentemente:
+    //const sorted = [...data].sort((a, b) => (b.goles / b.partidos) - (a.goles / a.partidos));
+    //Si quisieramos ordenarlo ascendentemente:
+    //const sorted = [...data].sort((a, b) => (a.goles / a.partidos) - (b.goles / b.partidos));
 
     this.charts.set('media', new Chart(canvas, {
       type: 'line',
       data: {
-        labels: sorted.map(s => s.seleccion),
+        //labels: sorted.map(s => s.seleccion),
+        labels: data.map(s => s.seleccion),
         datasets: [{
           label: 'Media de goles por partido',
-          data: sorted.map(s => parseFloat((s.goles / s.partidos).toFixed(2))),
+          //data: sorted.map(s => parseFloat((s.goles / s.partidos).toFixed(2))),
+          data: data.map(s => parseFloat((s.goles / s.partidos).toFixed(2))),
           borderColor: '#eb445a',
           backgroundColor: 'rgba(235, 68, 90, 0.12)',
           borderWidth: 2,
           pointBackgroundColor: '#eb445a',
+          //El tamaño de los puntos de la línea
           pointRadius: 5,
+          // 0 = línea recta, 1 = máxima curvatura Bézier.
+          // Con 0.3 la línea tendrá una ligera suavidad, no es recta del todo pero tampoco muy curvada.
           tension: 0.3,
           fill: true
         }]
@@ -81,7 +89,8 @@ export class GraficosComponent implements OnDestroy {
           },
           tooltip: {
             callbacks: {
-              label: ctx => ` ${ctx.parsed.y} goles/partido (${sorted[ctx.dataIndex].partidos} partidos)`
+              //label: ctx => ` ${ctx.parsed.y} goles/partido (${sorted[ctx.dataIndex].partidos} partidos)`
+              label: ctx => ` ${ctx.parsed.y} goles/partido (${data[ctx.dataIndex].partidos} partidos)`
             }
           }
         },
