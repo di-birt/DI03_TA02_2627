@@ -66,8 +66,9 @@ export class GraficosComponent implements OnDestroy {
           borderColor: '#eb445a',
           backgroundColor: 'rgba(235, 68, 90, 0.12)',
           borderWidth: 2,
+          //El color que le damos al punto.
           pointBackgroundColor: '#eb445a',
-          //El tamaño de los puntos de la línea
+          //El tamaño de los puntos de la línea, por defecto 1.
           pointRadius: 5,
           // 0 = línea recta, 1 = máxima curvatura Bézier.
           // Con 0.3 la línea tendrá una ligera suavidad, no es recta del todo pero tampoco muy curvada.
