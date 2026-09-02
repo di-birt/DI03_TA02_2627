@@ -61,8 +61,8 @@ export class GraficosComponent implements OnDestroy {
         labels: data.map(s => s.seleccion),
         datasets: [{
           label: 'Media de goles por partido',
-          //data: sorted.map(s => parseFloat((s.goles / s.partidos).toFixed(2))),
-          data: data.map(s => parseFloat((s.goles / s.partidos).toFixed(2))),
+          //data: sorted.map(s =>  Math.round((s.goles / s.partidos) * 100) / 100),
+          data: data.map(s => Math.round((s.goles / s.partidos) * 100) / 100),
           borderColor: '#eb445a',
           backgroundColor: 'rgba(235, 68, 90, 0.12)',
           borderWidth: 2,
